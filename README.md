@@ -28,16 +28,24 @@ kind: Deployment
         - image: fenrir7734/bookly-backend:latest
             name: bookly-backend
             resources:
-            requests:
-                cpu: 100m
-                memory: 512Mi
-            limits:
-                cpu: 400m
-                memory: 1028Mi
+                requests:
+                    cpu: 100m
+                    memory: 1024Mi
+                limits:
+                    cpu: 400m
+                    memory: 2048Mi
+            readinessProbe:
+                httpGet:
+                    path: /actuator/health
+                    port: 8080
+                initialDelaySeconds: 20
+                periodSeconds: 5
 ```
 - `resources` - definiuje zasoby dla kontenera:
-    - `requests`: Minimalne zasoby, które kontener rezerwuje (100m CPU i 512Mi pamięci).
-    - `limits`: Maksymalne zasoby, które kontener może używać (400m CPU i 1028Mi pamięci).
+    - `requests`: Minimalne zasoby, które kontener rezerwuje (100m CPU i 1024Mi pamięci).
+    - `limits`: Maksymalne zasoby, które kontener może używać (400m CPU i 2048Mi pamięci).
+- `readinessProbe` - sprawdza, czy aplikacja jest gotowa do obsługi ruchu. Kubernetes przekierowuje ruch tylko do podów, które przejdą tę kontrolę. Jest to wymagane ponieważ Spring potrzebuje co najmniej kilkudziesięciu sekund na rozruch, zanim będzie mógł obsługiwać żądania. Bez tego sprawdzenia autoskaler stworzy nowy pod i od razu zacznie do niego przekierowywać ruch, gubiąc tym samym żadania, które nie mogą być jeszcze obsłużone.
+
 
 ```yml
 apiVersion: autoscaling/v2
@@ -47,7 +55,7 @@ metadata:
 spec:
   ...
   minReplicas: 1
-  maxReplicas: 10
+  maxReplicas: 5
   metrics:
   - type: Resource
     resource:
@@ -60,7 +68,7 @@ spec:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 70
+        averageUtilization: 80
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60 
@@ -69,11 +77,11 @@ spec:
           value: 50
           periodSeconds: 60
     scaleDown:
-      stabilizationWindowSeconds: 60
+      stabilizationWindowSeconds: 20
       policies:
         - type: Percent
           value: 50
-          periodSeconds: 60
+          periodSeconds: 20
 ```
 - `minReplicas: 1` - Minimalna liczba replik, którą może mieć aplikacja.
 - `maxReplicas: 10` - Maksymalna liczba replik, którą może mieć aplikacja.
@@ -82,7 +90,10 @@ spec:
   - `memory` - Skalowanie przy średnim wykorzystaniu pamięci powyżej 70%.
 - `behavior` - Definiuje zasady skalowania:
   - `scaleUp` i `scaleDown` - Stabilizacja na 60 sekund i skalowanie o 50% w okresie 60 sekund. Ustawienie okna stabilizacji na 60 sekund oznacza, że autoskaler będzie czekał 60 sekund, zanim zareaguje na zmiany w metrykach. Zapobiega to nagłym wahaniom liczby replik w odpowiedzi na krótkotrwałe piki obciążenia np. Spring ma wysokie wykorzystanie zasobów podczas uruchomienia, przez co, jeżeli nie zastosujemy `stabilizationWindowSeconds`, może się zdażyć że autoskaler stworzy dodatkowe repliki już przy uruchamianiu aplikacji, bo wykryje duże obciążenie.
-  - `periodSeconds` - skalowanie może zachodzić co 30 sekund
+  - `periodSeconds` - skalowanie może zachodzić co 60 sekund w przypadku `scaleUp` i co 20 sekund dla `scaleDown`
+
+### YouTube - demostracja działania
+[![youtube video](https://img.youtube.com/vi/o3Ts15qxS50/0.jpg)](https://youtu.be/o3Ts15qxS50)
 
 ## Instrukcja uruchomienia
 W celu uruchomienia projektu w klastrze kubernates wymagane są:
