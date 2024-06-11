@@ -44,7 +44,7 @@ kind: Deployment
 - `resources` - definiuje zasoby dla kontenera:
     - `requests`: Minimalne zasoby, które kontener rezerwuje (100m CPU i 1024Mi pamięci).
     - `limits`: Maksymalne zasoby, które kontener może używać (400m CPU i 2048Mi pamięci).
-- `readinessProbe` - sprawdza, czy aplikacja jest gotowa do obsługi ruchu. Kubernetes przekierowuje ruch tylko do podów, które przejdą tę kontrolę. Jest to wymagane ponieważ Spring potrzebuje co najmniej kilkudziesięciu sekund na rozruch, zanim będzie mógł obsługiwać żądania. Bez tego sprawdzenia autoskaler stworzy nowy pod i od razu zacznie do niego przekierowywać ruch, gubiąc tym samym żadania, które nie mogą być jeszcze obsłużone.
+- `readinessProbe` - sprawdza, czy aplikacja jest gotowa do obsługi ruchu. Kubernetes przekierowuje ruch tylko do podów, które przejdą tę kontrolę. Jest to wymagane ponieważ Spring potrzebuje co najmniej kilkudziesięciu sekund na rozruch, zanim będzie mógł obsługiwać żądania. Bez tego sprawdzenia autoskaler stworzy nowy pod i od razu zacznie do niego przekierowywać ruch, gubiąc tym samym żadania, które nie mogą być jeszcze obsłużone. `path` określa ścieżkę endpointa do którego będą wysyłane requesty metodą GET, w celu sprawdzenia gotowości poda. `initialDelaySeconds` określa liczbę sekund od stworzenia poda do pierwszego sprawdzenia jego gotowości. `periodSeconds` określa w sekundach jak często wykonywane będzie sprawdzanie gotowości.
 
 
 ```yml
@@ -85,11 +85,12 @@ spec:
 ```
 - `minReplicas: 1` - Minimalna liczba replik, którą może mieć aplikacja.
 - `maxReplicas: 10` - Maksymalna liczba replik, którą może mieć aplikacja.
+- `averageUtilization` - średni procentowy wskaźnik wykorzystania zasobów (np. CPU, pamięci) dla wszystkich podów w danym Deployment. Wyliczany jest na podstawie aktualnego zużycia zasobów w stosunku do zadeklarowanych limitów.
 - `metrics` - Skalowanie na podstawie wykorzystania zasobów:
   - `cpu` - Skalowanie przy średnim wykorzystaniu CPU powyżej 50%.
   - `memory` - Skalowanie przy średnim wykorzystaniu pamięci powyżej 70%.
 - `behavior` - Definiuje zasady skalowania:
-  - `scaleUp` i `scaleDown` - Stabilizacja na 60 sekund i skalowanie o 50% w okresie 60 sekund. Ustawienie okna stabilizacji na 60 sekund oznacza, że autoskaler będzie czekał 60 sekund, zanim zareaguje na zmiany w metrykach. Zapobiega to nagłym wahaniom liczby replik w odpowiedzi na krótkotrwałe piki obciążenia np. Spring ma wysokie wykorzystanie zasobów podczas uruchomienia, przez co, jeżeli nie zastosujemy `stabilizationWindowSeconds`, może się zdażyć że autoskaler stworzy dodatkowe repliki już przy uruchamianiu aplikacji, bo wykryje duże obciążenie.
+  - `scaleUp` i `scaleDown` - Stabilizacja na 60 sekund (20 w przypadku `scaleDown`) i skalowanie o 50% w okresie 60 sekund (20 w przypadku `scaleDown`). Ustawienie okna stabilizacji na 60 sekund oznacza, że autoskaler będzie czekał 60 sekund, zanim zareaguje na zmiany w metrykach. Zapobiega to nagłym wahaniom liczby replik w odpowiedzi na krótkotrwałe piki obciążenia np. Spring ma wysokie wykorzystanie zasobów podczas uruchomienia, przez co, jeżeli nie zastosujemy `stabilizationWindowSeconds`, może się zdażyć że autoskaler stworzy dodatkowe repliki już przy uruchamianiu aplikacji, bo wykryje duże obciążenie.
   - `periodSeconds` - skalowanie może zachodzić co 60 sekund w przypadku `scaleUp` i co 20 sekund dla `scaleDown`
 
 ### YouTube - demostracja działania
