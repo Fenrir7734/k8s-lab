@@ -65,6 +65,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                     .authorizeRequests()
                     .antMatchers(SWAGGER).permitAll()
+                    .antMatchers("/actuator/**").permitAll()
                     .antMatchers("/api/auth/**").permitAll()
                     .antMatchers("/api/users/{username}/info").access("@userSecurity.isResourceOwner(authentication, #username)")
                     .antMatchers(
