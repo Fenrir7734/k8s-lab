@@ -93,7 +93,7 @@ spec:
   - `cpu` - Skalowanie przy średnim wykorzystaniu CPU powyżej 50%.
   - `memory` - Skalowanie przy średnim wykorzystaniu pamięci powyżej 70%.
 - `behavior` - Definiuje zasady skalowania:
-  - `scaleUp` i `scaleDown` - Stabilizacja na 60 sekund (20 w przypadku `scaleDown`) i skalowanie o 50% w okresie 60 sekund (20 w przypadku `scaleDown`). Ustawienie okna stabilizacji na 60 sekund oznacza, że autoskaler będzie czekał 60 sekund, zanim zareaguje na zmiany w metrykach. Zapobiega to nagłym wahaniom liczby replik w odpowiedzi na krótkotrwałe piki obciążenia np. Spring ma wysokie wykorzystanie zasobów podczas uruchomienia, przez co, jeżeli nie zastosujemy `stabilizationWindowSeconds`, może się zdażyć że autoskaler stworzy dodatkowe repliki już przy uruchamianiu aplikacji, bo wykryje duże obciążenie.
+  - `scaleUp` i `scaleDown` - Stabilizacja na 60 sekund (20 w przypadku `scaleDown`) i skalowanie o 50% w okresie 60 sekund (20 w przypadku `scaleDown`). Ustawienie okna stabilizacji na 60 sekund oznacza, że autoskaler będzie czekał 60 sekund, zanim zareaguje na zmiany w metrykach. Zapobiega to nagłym wahaniom liczby replik w odpowiedzi na krótkotrwałe piki obciążenia np. Spring ma wysokie wykorzystanie zasobów podczas uruchomienia, przez co, jeżeli nie zastosujemy `stabilizationWindowSeconds`, może się zdarzyć, że autoskaler stworzy dodatkowe repliki już przy uruchamianiu aplikacji, bo wykryje duże obciążenie.
   - `periodSeconds` - skalowanie może zachodzić co 60 sekund w przypadku `scaleUp` i co 20 sekund dla `scaleDown`
 
 ### YouTube - demostracja działania
